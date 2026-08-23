@@ -53,16 +53,24 @@ function bookingUrl(dayName, time, title) {
   return `https://vk.ru/write-${VK_GROUP_ID}?text=${text}`;
 }
 
+function cellHasFreePlaces(cell) {
+  const text = `${cell?.title || ''} ${cell?.details || ''}`.toLowerCase();
+  return /свободно\s+[1-9]\d*\s+мест(?:о|а)?\b/i.test(text)
+    || /[1-9]\d*\s+свободн(?:ое|ых)\s+мест(?:о|а)?\b/i.test(text);
+}
+
 function renderWeekCell(cell, dayName, time) {
   const safe = { ...emptyCell(), ...(cell || {}) };
-  const [statusLabel, statusClass] = statusMap[safe.status] || statusMap.empty;
-  const hasContent = safe.title || safe.details || safe.status !== 'empty';
+  const isFree = safe.status === 'free' || cellHasFreePlaces(safe);
+  const effectiveStatus = isFree ? 'free' : safe.status;
+  const [statusLabel, statusClass] = statusMap[effectiveStatus] || statusMap.empty;
+  const hasContent = safe.title || safe.details || effectiveStatus !== 'empty';
 
   if (!hasContent) {
     return `<div class="week-cell week-empty"><span class="week-dash">—</span></div>`;
   }
 
-  const freeLink = safe.status === 'free'
+  const freeLink = isFree
     ? `<a class="week-book" href="${bookingUrl(dayName, time, safe.title)}" target="_blank" rel="noopener">Записаться <span aria-hidden="true">→</span></a>`
     : '';
 
