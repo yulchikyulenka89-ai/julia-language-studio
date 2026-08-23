@@ -1,15 +1,24 @@
-const state = { data: null, filter: 'all' };
+const state = { data: null };
 const contactUrl = 'https://vk.ru/club241020936';
 
-const slotsGrid = document.getElementById('slotsGrid');
+const weeklySchedule = document.getElementById('weeklySchedule');
 const groupsGrid = document.getElementById('groupsGrid');
 const updatedText = document.getElementById('updatedText');
 const notice = document.getElementById('notice');
 
+const DAYS = [
+  ['monday', 'Понедельник', 'Пн'],
+  ['tuesday', 'Вторник', 'Вт'],
+  ['wednesday', 'Среда', 'Ср'],
+  ['thursday', 'Четверг', 'Чт'],
+  ['friday', 'Пятница', 'Пт']
+];
+
 const statusMap = {
-  free: ['Свободно', 'status-free'],
-  hold: ['Бронь', 'status-hold'],
-  busy: ['Занято', 'status-busy']
+  empty: ['Не задано', 'week-empty'],
+  free: ['Свободно', 'week-free'],
+  hold: ['Бронь', 'week-hold'],
+  busy: ['Занято', 'week-busy']
 };
 
 function esc(value = '') {
@@ -21,13 +30,6 @@ function esc(value = '') {
     .replaceAll("'", '&#039;');
 }
 
-function formatDate(value) {
-  if (!value) return 'Дата уточняется';
-  const date = new Date(`${value}T12:00:00`);
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat('ru-RU', { weekday: 'short', day: 'numeric', month: 'long' }).format(date);
-}
-
 function updatedLabel(value) {
   if (!value) return 'Расписание готово к заполнению';
   const date = new Date(value);
@@ -35,52 +37,68 @@ function updatedLabel(value) {
   return `Обновлено ${new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(date)}`;
 }
 
-function slotMatches(slot) {
-  if (state.filter === 'all') return true;
-  if (state.filter === 'individual' || state.filter === 'group') return slot.type === state.filter;
-  if (state.filter === 'online' || state.filter === 'offline') return slot.format === state.filter;
-  return true;
+function emptyCell() {
+  return { time: '', status: 'empty', title: '', details: '' };
 }
 
-function renderSlots() {
-  const slots = (state.data?.slots || [])
-    .filter(s => s.visible !== false)
-    .filter(s => s.status !== 'busy')
-    .filter(slotMatches)
-    .sort((a, b) => `${a.date || ''} ${a.time || ''}`.localeCompare(`${b.date || ''} ${b.time || ''}`));
+function normalizeWeek(data) {
+  data.week ||= {};
+  DAYS.forEach(([key]) => {
+    const source = Array.isArray(data.week[key]) ? data.week[key] : [];
+    data.week[key] = Array.from({ length: 10 }, (_, index) => ({
+      ...emptyCell(),
+      ...(source[index] || {})
+    }));
+  });
+}
 
-  if (!slots.length) {
-    slotsGrid.innerHTML = `<div class="empty"><strong>Свободных окон пока нет</strong><span>Можно написать преподавателю — иногда появляются новые места.</span></div>`;
-    return;
+function renderWeekCell(cell) {
+  const safe = { ...emptyCell(), ...(cell || {}) };
+  const [statusLabel, statusClass] = statusMap[safe.status] || statusMap.empty;
+  const hasContent = safe.time || safe.title || safe.details || safe.status !== 'empty';
+
+  if (!hasContent) {
+    return `<div class="week-cell week-empty"><span class="week-dash">—</span></div>`;
   }
 
-  slotsGrid.innerHTML = slots.map(slot => {
-    const [statusLabel, statusClass] = statusMap[slot.status] || statusMap.free;
-    const typeLabel = slot.type === 'group' ? 'Мини‑группа' : 'Индивидуально';
-    const formatLabel = slot.format === 'offline' ? 'Очно' : 'Онлайн';
-    const seats = slot.type === 'group' && Number.isFinite(Number(slot.seatsFree))
-      ? `<span class="chip">Мест: ${esc(slot.seatsFree)}${slot.seatsTotal ? ` из ${esc(slot.seatsTotal)}` : ''}</span>` : '';
-    return `
-      <article class="card slot-card">
-        <div class="slot-top">
-          <div>
-            <div class="slot-date">${esc(formatDate(slot.date))}</div>
-            <div class="slot-time">${esc(slot.time || '—')}</div>
-          </div>
-          <span class="status ${statusClass}">${statusLabel}</span>
-        </div>
-        <div class="slot-meta">
-          <span class="chip">${typeLabel}</span>
-          <span class="chip">${formatLabel}</span>
-          ${slot.level ? `<span class="chip">${esc(slot.level)}</span>` : ''}
-          ${slot.audience ? `<span class="chip">${esc(slot.audience)}</span>` : ''}
-          ${slot.duration ? `<span class="chip">${esc(slot.duration)} мин</span>` : ''}
-          ${seats}
-        </div>
-        ${slot.note ? `<p class="slot-note">${esc(slot.note)}</p>` : ''}
-        <a class="card-action" href="${contactUrl}" target="_blank" rel="noopener">Записаться <span aria-hidden="true">→</span></a>
-      </article>`;
+  const freeLink = safe.status === 'free'
+    ? `<a class="week-book" href="${contactUrl}" target="_blank" rel="noopener">Записаться</a>`
+    : '';
+
+  return `
+    <div class="week-cell ${statusClass}">
+      <div class="week-cell-top">
+        <strong class="week-time">${esc(safe.time || '—')}</strong>
+        <span class="week-status">${statusLabel}</span>
+      </div>
+      ${safe.title ? `<div class="week-title">${esc(safe.title)}</div>` : ''}
+      ${safe.details ? `<div class="week-details">${esc(safe.details)}</div>` : ''}
+      ${freeLink}
+    </div>`;
+}
+
+function renderWeeklySchedule() {
+  if (!state.data) return;
+  normalizeWeek(state.data);
+
+  const header = DAYS.map(([, full, short]) => `
+    <th scope="col"><span class="day-full">${full}</span><span class="day-short">${short}</span></th>`).join('');
+
+  const rows = Array.from({ length: 10 }, (_, rowIndex) => {
+    const cells = DAYS.map(([key]) => `<td>${renderWeekCell(state.data.week[key][rowIndex])}</td>`).join('');
+    return `<tr><th scope="row" class="lesson-number"><span>${rowIndex + 1}</span></th>${cells}</tr>`;
   }).join('');
+
+  weeklySchedule.innerHTML = `
+    <table class="weekly-table">
+      <thead>
+        <tr>
+          <th class="lesson-corner" scope="col">№</th>
+          ${header}
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
 }
 
 function renderGroups() {
@@ -108,32 +126,22 @@ async function loadSchedule() {
     const response = await fetch(`data/schedule.json?v=${Date.now()}`, { cache: 'no-store' });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     state.data = await response.json();
+    normalizeWeek(state.data);
     updatedText.textContent = updatedLabel(state.data.meta?.updatedAt);
     if (state.data.meta?.notice) {
       notice.textContent = state.data.meta.notice;
       notice.classList.remove('hidden');
+    } else {
+      notice.classList.add('hidden');
     }
-    renderSlots();
+    renderWeeklySchedule();
     renderGroups();
   } catch (error) {
     console.error(error);
     updatedText.textContent = 'Не удалось загрузить расписание';
-    slotsGrid.innerHTML = `<div class="empty"><strong>Расписание временно недоступно</strong><span>Попробуйте обновить страницу чуть позже.</span></div>`;
+    weeklySchedule.innerHTML = `<div class="empty"><strong>Расписание временно недоступно</strong><span>Попробуйте обновить страницу чуть позже.</span></div>`;
     groupsGrid.innerHTML = '';
   }
 }
-
-document.querySelectorAll('.filter-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.filter-btn').forEach(b => {
-      b.classList.remove('active');
-      b.setAttribute('aria-pressed', 'false');
-    });
-    btn.classList.add('active');
-    btn.setAttribute('aria-pressed', 'true');
-    state.filter = btn.dataset.filter;
-    renderSlots();
-  });
-});
 
 loadSchedule();
