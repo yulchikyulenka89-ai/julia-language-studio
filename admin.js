@@ -53,6 +53,14 @@ function emptyWeekCell() {
   return { status: 'empty', title: '', details: '' };
 }
 
+function cloneDay(dayCells) {
+  return dayCells.map(cell => ({ ...emptyWeekCell(), ...(cell || {}) }));
+}
+
+function dayLabel(key) {
+  return DAYS.find(([day]) => day === key)?.[1] || key;
+}
+
 function normalizeWeek() {
   schedule.week ||= {};
   schedule.times = Array.isArray(schedule.times) ? schedule.times.slice(0, 10) : [];
@@ -93,6 +101,7 @@ async function loadData() {
   normalizeWeek();
   renderAll();
   selectWeekCell($('weekDay').value, Number($('weekLesson').value));
+  setDefaultCopyTarget();
   $('syncInfo').textContent = schedule.meta.updatedAt
     ? `Последнее сохранение: ${new Date(schedule.meta.updatedAt).toLocaleString('ru-RU')}`
     : 'Изменения ещё не сохранялись из кабинета.';
@@ -164,6 +173,7 @@ function selectWeekCell(day, index) {
   $('weekTitle').value = cell.title || '';
   $('weekDetails').value = cell.details || '';
   renderWeekAdmin();
+  setDefaultCopyTarget();
 }
 
 function applyWeekCell() {
@@ -190,6 +200,41 @@ function clearWeekCell() {
   renderAll();
   selectWeekCell(day, index);
   showToast('Ячейка очищена. Время строки сохранено.');
+}
+
+function setDefaultCopyTarget() {
+  const source = $('weekDay').value;
+  const current = $('copyTargetDay').value;
+  if (current && current !== source) return;
+  const target = DAYS.find(([key]) => key !== source)?.[0];
+  if (target) $('copyTargetDay').value = target;
+}
+
+function copySelectedDay() {
+  if (!schedule) return;
+  normalizeWeek();
+  const source = $('weekDay').value;
+  const target = $('copyTargetDay').value;
+  if (!target || target === source) {
+    showToast('Выберите другой день, куда копировать.');
+    return;
+  }
+  if (!confirm(`Скопировать весь ${dayLabel(source).toLowerCase()} в ${dayLabel(target).toLowerCase()}? Данные ${dayLabel(target).toLowerCase()} будут заменены.`)) return;
+  schedule.week[target] = cloneDay(schedule.week[source]);
+  renderAll();
+  showToast(`✅ ${dayLabel(source)} скопирован в ${dayLabel(target)}. Нажмите «Сохранить всё».`, 3600);
+}
+
+function copySelectedDayToWeek() {
+  if (!schedule) return;
+  normalizeWeek();
+  const source = $('weekDay').value;
+  if (!confirm(`Скопировать ${dayLabel(source).toLowerCase()} на всю неделю? Расписание остальных четырёх дней будет заменено.`)) return;
+  DAYS.forEach(([key]) => {
+    if (key !== source) schedule.week[key] = cloneDay(schedule.week[source]);
+  });
+  renderAll();
+  showToast(`✅ ${dayLabel(source)} скопирован на всю неделю. Нажмите «Сохранить всё».`, 4000);
 }
 
 function renderAll() {
@@ -242,5 +287,7 @@ $('reloadBtn').onclick = async () => {
 
 $('weekApplyBtn').onclick = applyWeekCell;
 $('weekClearBtn').onclick = clearWeekCell;
+$('copyDayBtn').onclick = copySelectedDay;
+$('copyWeekBtn').onclick = copySelectedDayToWeek;
 $('weekDay').onchange = () => selectWeekCell($('weekDay').value, Number($('weekLesson').value));
 $('weekLesson').onchange = () => selectWeekCell($('weekDay').value, Number($('weekLesson').value));
