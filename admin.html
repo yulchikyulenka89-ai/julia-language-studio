@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#071b45">
   <title>Julia Language Studio — админка</title>
-  <link rel="stylesheet" href="styles.css?v=7">
-  <link rel="stylesheet" href="schedule-grid.css?v=1">
+  <link rel="stylesheet" href="styles.css?v=8">
+  <link rel="stylesheet" href="schedule-grid.css?v=2">
 </head>
 <body class="admin-body">
   <div class="admin-shell">
@@ -54,7 +54,7 @@
         <div>
           <section class="panel" style="margin-bottom:18px">
             <h2>🗓 Недельное расписание · Пн–Пт</h2>
-            <p class="admin-item-sub" style="margin-bottom:14px">10 занятий в день. Нажмите любую ячейку в таблице ниже или выберите день и номер занятия вручную.</p>
+            <p class="admin-item-sub" style="margin-bottom:14px">10 строк расписания. Время каждой строки вы задаёте сами. Оно автоматически показывается слева и действует для всей строки с понедельника по пятницу.</p>
 
             <div class="week-editor-form">
               <div class="field">
@@ -68,14 +68,14 @@
                 </select>
               </div>
               <div class="field">
-                <label for="weekLesson">№ занятия</label>
+                <label for="weekLesson">Строка расписания</label>
                 <select class="select" id="weekLesson">
                   <option value="0">1</option><option value="1">2</option><option value="2">3</option><option value="3">4</option><option value="4">5</option>
                   <option value="5">6</option><option value="6">7</option><option value="7">8</option><option value="8">9</option><option value="9">10</option>
                 </select>
               </div>
               <div class="field">
-                <label for="weekTime">Время</label>
+                <label for="weekTime">Время строки</label>
                 <input class="input" id="weekTime" type="time">
               </div>
               <div class="field">
@@ -96,7 +96,7 @@
                 <input class="input" id="weekDetails" placeholder="Например: мини-группа · 2 места / индивидуально">
               </div>
               <div class="actions full">
-                <button class="btn btn-primary" type="button" id="weekApplyBtn">Применить к ячейке</button>
+                <button class="btn btn-primary" type="button" id="weekApplyBtn">Применить время и ячейку</button>
                 <button class="btn btn-danger" type="button" id="weekClearBtn">Очистить ячейку</button>
               </div>
             </div>
@@ -136,6 +136,6 @@
     </section>
   </div>
   <div class="toast" id="toast"></div>
-  <script src="admin.js?v=7"></script>
+  <script src="admin.js?v=8"></script>
 </body>
 </html>
