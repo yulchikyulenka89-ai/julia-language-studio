@@ -1,4 +1,5 @@
 const state = { data: null, filter: 'all' };
+const contactUrl = 'https://vk.ru/club241020936';
 
 const slotsGrid = document.getElementById('slotsGrid');
 const groupsGrid = document.getElementById('groupsGrid');
@@ -77,6 +78,7 @@ function renderSlots() {
           ${seats}
         </div>
         ${slot.note ? `<p class="slot-note">${esc(slot.note)}</p>` : ''}
+        <a class="card-action" href="${contactUrl}" target="_blank" rel="noopener">Записаться <span aria-hidden="true">→</span></a>
       </article>`;
   }).join('');
 }
@@ -97,6 +99,7 @@ function renderGroups() {
       ${group.audience ? `<div class="group-row"><span>Для кого</span><b>${esc(group.audience)}</b></div>` : ''}
       ${group.format ? `<div class="group-row"><span>Формат</span><b>${group.format === 'offline' ? 'Очно' : 'Онлайн'}</b></div>` : ''}
       ${group.note ? `<p class="slot-note">${esc(group.note)}</p>` : ''}
+      <a class="card-action" href="${contactUrl}" target="_blank" rel="noopener">Узнать подробнее <span aria-hidden="true">→</span></a>
     </article>`).join('');
 }
 
@@ -122,8 +125,12 @@ async function loadSchedule() {
 
 document.querySelectorAll('.filter-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.filter-btn').forEach(b => {
+      b.classList.remove('active');
+      b.setAttribute('aria-pressed', 'false');
+    });
     btn.classList.add('active');
+    btn.setAttribute('aria-pressed', 'true');
     state.filter = btn.dataset.filter;
     renderSlots();
   });

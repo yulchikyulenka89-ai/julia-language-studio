@@ -3,93 +3,102 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#061536">
+  <meta name="theme-color" content="#020b20">
   <title>Julia Language Studio — свободные окна</title>
   <meta name="description" content="Актуальные свободные окна и места в группах Julia Language Studio.">
-  <link rel="stylesheet" href="styles.css?v=5">
+  <link rel="stylesheet" href="styles.css?v=6">
 </head>
 <body class="public-body">
   <header class="topbar" id="top">
     <div class="container nav">
-      <a class="brand" href="#top" aria-label="Julia Language Studio">
-        <img class="brand-logo" src="assets/site-logo.webp?v=5" alt="JF Julia Fattakhova">
-        <div class="brand-copy">
+      <a class="brand" href="#top" aria-label="Julia Language Studio — на главную">
+        <img class="brand-logo" src="assets/logo.png?v=6" alt="Логотип JF Julia Fattakhova">
+        <span class="brand-copy">
           <strong>Julia Language Studio</strong>
           <span>Курсы иностранных языков</span>
-        </div>
+        </span>
       </a>
-      <div class="nav-actions">
-        <a class="btn btn-ghost" href="#schedule">Расписание</a>
-        <a class="btn btn-gold" href="https://vk.ru/club241020936" target="_blank" rel="noopener">Написать в ВК</a>
-      </div>
+      <nav class="nav-actions" aria-label="Основная навигация">
+        <a class="nav-link" href="#schedule">Расписание</a>
+        <a class="btn btn-gold btn-compact" href="https://vk.ru/club241020936" target="_blank" rel="noopener">Написать в ВК</a>
+      </nav>
     </div>
   </header>
 
-  <main class="site-main no-cover">
-    <section class="intro container">
-      <div class="intro-panel">
-        <div class="eyebrow">Актуальное расписание</div>
+  <section class="cover-section" aria-label="Курсы иностранных языков с Юленькой Фаттаховой">
+    <img class="cover-image" src="assets/cover.png?v=6" alt="Преподаватель Юлия Фаттахова с детьми на фоне карты мира" fetchpriority="high">
+  </section>
+
+  <main class="site-main">
+    <div class="cover-transition" aria-hidden="true"><span></span><i></i><i></i><i></i></div>
+
+    <section class="intro container reveal">
+      <div class="intro-copy">
+        <div class="eyebrow"><span></span> Актуальное расписание</div>
         <h1>Найдите удобное время для занятий</h1>
-        <p>Свободные окна, места в мини‑группах и ближайшие варианты для записи — всё в одном месте.</p>
-        <div class="hero-badges">
-          <span class="badge">✨ всегда актуально</span>
-          <span class="badge">🎓 по возрасту и уровню</span>
-          <span class="badge">👥 группы и индивидуально</span>
-        </div>
+        <p>Свободные окна, места в мини-группах и ближайшие варианты для записи — всё в одном месте.</p>
+      </div>
+      <div class="hero-badges" aria-label="Преимущества">
+        <span class="badge"><span aria-hidden="true">✦</span> Всегда актуально</span>
+        <span class="badge"><span aria-hidden="true">◇</span> По возрасту и уровню</span>
+        <span class="badge"><span aria-hidden="true">◎</span> Группы и индивидуально</span>
       </div>
     </section>
 
-    <div class="container" id="schedule">
-      <section class="section schedule-shell">
+    <div class="container schedule-container">
+      <section class="section schedule-shell reveal" id="schedule">
         <div class="section-head">
           <div>
             <div class="section-kicker">Расписание</div>
             <h2>Свободные окна</h2>
             <p id="updatedText">Загружаю актуальное расписание…</p>
           </div>
+          <span class="section-ornament" aria-hidden="true">✦</span>
         </div>
         <div id="notice" class="notice hidden"></div>
-        <div class="filters" id="filters">
-          <button class="filter-btn active" data-filter="all">Все</button>
-          <button class="filter-btn" data-filter="individual">Индивидуально</button>
-          <button class="filter-btn" data-filter="group">Мини‑группы</button>
-          <button class="filter-btn" data-filter="online">Онлайн</button>
-          <button class="filter-btn" data-filter="offline">Очно</button>
+        <div class="filters" id="filters" aria-label="Фильтры расписания">
+          <button class="filter-btn active" type="button" data-filter="all" aria-pressed="true">Все</button>
+          <button class="filter-btn" type="button" data-filter="individual" aria-pressed="false">Индивидуально</button>
+          <button class="filter-btn" type="button" data-filter="group" aria-pressed="false">Мини-группы</button>
+          <button class="filter-btn" type="button" data-filter="online" aria-pressed="false">Онлайн</button>
+          <button class="filter-btn" type="button" data-filter="offline" aria-pressed="false">Очно</button>
         </div>
-        <div class="grid" id="slotsGrid"></div>
+        <div class="grid" id="slotsGrid" aria-live="polite"></div>
       </section>
 
-      <section class="section schedule-shell" id="groupsSection">
+      <section class="section schedule-shell groups-shell reveal" id="groupsSection">
         <div class="section-head">
           <div>
             <div class="section-kicker">Набор открыт</div>
             <h2>Места в группах</h2>
-            <p>Группы, в которые сейчас можно присоединиться.</p>
+            <p>Группы, к которым можно присоединиться прямо сейчас.</p>
           </div>
+          <span class="section-ornament" aria-hidden="true">✦</span>
         </div>
-        <div class="grid" id="groupsGrid"></div>
+        <div class="grid" id="groupsGrid" aria-live="polite"></div>
       </section>
 
-      <section class="cta">
-        <div>
-          <div class="section-kicker light">Не нашли свой вариант?</div>
-          <h2>Подберём удобное время</h2>
-          <p>Напишите удобные дни и часы. Подберём ближайшее окно или добавим вас в лист ожидания.</p>
+      <section class="cta reveal">
+        <div class="cta-copy">
+          <div class="section-kicker">Персональный подбор</div>
+          <h2>Не нашли подходящее время?</h2>
+          <p>Напишите удобные дни и часы — подберём ближайший вариант.</p>
         </div>
         <div class="cta-actions">
-          <a class="btn btn-gold" href="https://vk.ru/club241020936" target="_blank" rel="noopener">💬 Написать преподавателю</a>
+          <a class="btn btn-gold btn-large" href="https://vk.ru/club241020936" target="_blank" rel="noopener">Написать преподавателю <span aria-hidden="true">→</span></a>
         </div>
       </section>
     </div>
   </main>
 
-  <footer class="footer container">
-    <div class="footer-inner">
+  <footer class="footer">
+    <div class="container footer-inner">
       <span>© Julia Language Studio</span>
+      <span class="footer-star" aria-hidden="true">✦</span>
       <span>Преподаватель: Cambridge C2 Proficiency (CPE)</span>
     </div>
   </footer>
 
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>
