@@ -1,5 +1,5 @@
 const state = { data: null };
-const contactUrl = 'https://vk.ru/club241020936';
+const VK_GROUP_ID = '241020936';
 
 const weeklySchedule = document.getElementById('weeklySchedule');
 
@@ -13,7 +13,7 @@ const DAYS = [
 
 const statusMap = {
   empty: ['Не задано', 'week-empty'],
-  free: ['Свободно', 'week-free'],
+  free: ['СВОБОДНО', 'week-free'],
   hold: ['Бронь', 'week-hold'],
   busy: ['Занято', 'week-busy']
 };
@@ -45,7 +45,15 @@ function normalizeWeek(data) {
   });
 }
 
-function renderWeekCell(cell) {
+function bookingUrl(dayName, time, title) {
+  const parts = [`Здравствуйте! Хочу записаться на ${dayName.toLowerCase()} ${time || ''}`.trim()];
+  if (title) parts[0] += `, ${title}`;
+  parts[0] += '.';
+  const text = encodeURIComponent(parts.join(' '));
+  return `https://vk.ru/write-${VK_GROUP_ID}?text=${text}`;
+}
+
+function renderWeekCell(cell, dayName, time) {
   const safe = { ...emptyCell(), ...(cell || {}) };
   const [statusLabel, statusClass] = statusMap[safe.status] || statusMap.empty;
   const hasContent = safe.title || safe.details || safe.status !== 'empty';
@@ -55,7 +63,7 @@ function renderWeekCell(cell) {
   }
 
   const freeLink = safe.status === 'free'
-    ? `<a class="week-book" href="${contactUrl}" target="_blank" rel="noopener">Записаться</a>`
+    ? `<a class="week-book" href="${bookingUrl(dayName, time, safe.title)}" target="_blank" rel="noopener">Записаться <span aria-hidden="true">→</span></a>`
     : '';
 
   return `
@@ -77,8 +85,8 @@ function renderWeeklySchedule() {
     <th scope="col"><span class="day-full">${full}</span><span class="day-short">${short}</span></th>`).join('');
 
   const rows = Array.from({ length: 10 }, (_, rowIndex) => {
-    const cells = DAYS.map(([key]) => `<td>${renderWeekCell(state.data.week[key][rowIndex])}</td>`).join('');
     const rowTime = state.data.times[rowIndex] || '—';
+    const cells = DAYS.map(([key, full]) => `<td>${renderWeekCell(state.data.week[key][rowIndex], full, rowTime === '—' ? '' : rowTime)}</td>`).join('');
     return `<tr><th scope="row" class="lesson-number"><span>${esc(rowTime)}</span></th>${cells}</tr>`;
   }).join('');
 
