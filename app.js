@@ -2,9 +2,6 @@ const state = { data: null };
 const contactUrl = 'https://vk.ru/club241020936';
 
 const weeklySchedule = document.getElementById('weeklySchedule');
-const groupsGrid = document.getElementById('groupsGrid');
-const updatedText = document.getElementById('updatedText');
-const notice = document.getElementById('notice');
 
 const DAYS = [
   ['monday', 'Понедельник', 'Пн'],
@@ -28,13 +25,6 @@ function esc(value = '') {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;');
-}
-
-function updatedLabel(value) {
-  if (!value) return 'Расписание готово к заполнению';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Расписание обновлено';
-  return `Обновлено ${new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(date)}`;
 }
 
 function emptyCell() {
@@ -104,46 +94,16 @@ function renderWeeklySchedule() {
     </table>`;
 }
 
-function renderGroups() {
-  const groups = (state.data?.groups || []).filter(g => g.visible !== false && Number(g.seatsFree || 0) > 0);
-  if (!groups.length) {
-    groupsGrid.innerHTML = `<div class="empty"><strong>Набор в группы появится здесь</strong><span>Когда откроются места, они сразу отобразятся на этой странице.</span></div>`;
-    return;
-  }
-  groupsGrid.innerHTML = groups.map(group => `
-    <article class="card group-card">
-      <h3>${esc(group.title || 'Мини‑группа')}</h3>
-      <div class="big-number">${esc(group.seatsFree || 0)} ${Number(group.seatsFree) === 1 ? 'место' : 'места'}</div>
-      ${group.days ? `<div class="group-row"><span>Дни</span><b>${esc(group.days)}</b></div>` : ''}
-      ${group.time ? `<div class="group-row"><span>Время</span><b>${esc(group.time)}</b></div>` : ''}
-      ${group.level ? `<div class="group-row"><span>Уровень</span><b>${esc(group.level)}</b></div>` : ''}
-      ${group.audience ? `<div class="group-row"><span>Для кого</span><b>${esc(group.audience)}</b></div>` : ''}
-      ${group.format ? `<div class="group-row"><span>Формат</span><b>${group.format === 'offline' ? 'Очно' : 'Онлайн'}</b></div>` : ''}
-      ${group.note ? `<p class="slot-note">${esc(group.note)}</p>` : ''}
-      <a class="card-action" href="${contactUrl}" target="_blank" rel="noopener">Узнать подробнее <span aria-hidden="true">→</span></a>
-    </article>`).join('');
-}
-
 async function loadSchedule() {
   try {
     const response = await fetch(`data/schedule.json?v=${Date.now()}`, { cache: 'no-store' });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     state.data = await response.json();
     normalizeWeek(state.data);
-    updatedText.textContent = updatedLabel(state.data.meta?.updatedAt);
-    if (state.data.meta?.notice) {
-      notice.textContent = state.data.meta.notice;
-      notice.classList.remove('hidden');
-    } else {
-      notice.classList.add('hidden');
-    }
     renderWeeklySchedule();
-    renderGroups();
   } catch (error) {
     console.error(error);
-    updatedText.textContent = 'Не удалось загрузить расписание';
     weeklySchedule.innerHTML = `<div class="empty"><strong>Расписание временно недоступно</strong><span>Попробуйте обновить страницу чуть позже.</span></div>`;
-    groupsGrid.innerHTML = '';
   }
 }
 
