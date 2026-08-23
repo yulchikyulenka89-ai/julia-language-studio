@@ -1,0 +1,228 @@
+/* Weekly schedule: Monday-Friday x 10 lessons */
+.schedule-legend {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 4px 0 18px;
+  color: #dce7fa;
+  font-size: 13px;
+  font-weight: 700;
+}
+.schedule-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 10px currentColor;
+}
+.legend-free { color: #58d9a0; background: #58d9a0; }
+.legend-hold { color: #f2bd55; background: #f2bd55; }
+.legend-busy { color: #dc7777; background: #dc7777; }
+
+.weekly-scroll {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scrollbar-color: rgba(237, 201, 118, .45) rgba(255,255,255,.04);
+}
+.weekly-scroll::-webkit-scrollbar { height: 10px; }
+.weekly-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,.035); border-radius: 999px; }
+.weekly-scroll::-webkit-scrollbar-thumb { background: rgba(237,201,118,.38); border-radius: 999px; }
+
+.weekly-table {
+  width: 100%;
+  min-width: 1040px;
+  border-collapse: separate;
+  border-spacing: 8px;
+  table-layout: fixed;
+}
+.weekly-table th,
+.weekly-table td {
+  padding: 0;
+  vertical-align: top;
+}
+.weekly-table thead th {
+  height: 48px;
+  padding: 0 10px;
+  border: 1px solid rgba(240,205,126,.23);
+  border-radius: 14px;
+  color: #fff7df;
+  background: linear-gradient(180deg, rgba(20,61,126,.86), rgba(8,31,76,.94));
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 16px;
+  font-weight: 500;
+  text-align: center;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+}
+.lesson-corner {
+  width: 54px;
+  color: #eac878 !important;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  letter-spacing: .08em;
+}
+.day-short { display: none; }
+.lesson-number {
+  width: 54px;
+  text-align: center;
+}
+.lesson-number span {
+  width: 44px;
+  min-height: 86px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(240,205,126,.17);
+  border-radius: 14px;
+  color: #eac878;
+  background: rgba(255,255,255,.035);
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.week-cell {
+  min-height: 86px;
+  height: 100%;
+  padding: 11px 12px 10px;
+  border: 1px solid rgba(240,205,126,.14);
+  border-radius: 15px;
+  background: linear-gradient(145deg, rgba(12,42,94,.68), rgba(4,22,55,.86));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.week-cell-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 7px;
+}
+.week-time {
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+  letter-spacing: -.02em;
+}
+.week-status {
+  padding: 4px 6px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 900;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.week-title {
+  margin-top: 8px;
+  color: #fff1c7;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+.week-details {
+  margin-top: 4px;
+  color: #aebbd3;
+  font-size: 10px;
+  line-height: 1.3;
+}
+.week-book {
+  display: inline-flex;
+  margin-top: 8px;
+  color: #f1cc75;
+  font-size: 10px;
+  font-weight: 850;
+  text-decoration: none;
+}
+.week-dash {
+  min-height: 62px;
+  display: grid;
+  place-items: center;
+  color: rgba(199,211,232,.36);
+  font-size: 20px;
+}
+.week-empty { background: rgba(255,255,255,.018); border-style: dashed; }
+.week-free {
+  border-color: rgba(88,217,160,.34);
+  background: linear-gradient(145deg, rgba(14,82,70,.50), rgba(4,34,45,.82));
+}
+.week-free .week-status { color: #77e9b5; background: rgba(88,217,160,.12); }
+.week-hold {
+  border-color: rgba(242,189,85,.34);
+  background: linear-gradient(145deg, rgba(93,66,17,.48), rgba(49,34,10,.82));
+}
+.week-hold .week-status { color: #f4cb77; background: rgba(242,189,85,.12); }
+.week-busy {
+  border-color: rgba(220,119,119,.28);
+  background: linear-gradient(145deg, rgba(73,34,48,.50), rgba(35,22,37,.84));
+  opacity: .8;
+}
+.week-busy .week-status { color: #ee9a9a; background: rgba(220,119,119,.12); }
+
+@media (hover:hover) {
+  .week-cell:not(.week-empty):hover {
+    transform: translateY(-2px);
+    border-color: rgba(245,211,132,.46);
+    box-shadow: 0 12px 28px rgba(0,4,18,.24), 0 0 18px rgba(214,168,78,.06);
+  }
+}
+
+/* Admin weekly editor */
+.week-editor-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.week-editor-form .full { grid-column: 1 / -1; }
+.week-admin-scroll { overflow-x: auto; margin-top: 16px; }
+.week-admin-table {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: separate;
+  border-spacing: 6px;
+  table-layout: fixed;
+}
+.week-admin-table th {
+  padding: 9px;
+  color: #15356c;
+  font-size: 12px;
+  background: #eef3fb;
+  border-radius: 10px;
+}
+.week-admin-table .admin-row-num { width: 44px; }
+.week-admin-cell {
+  width: 100%;
+  min-height: 64px;
+  padding: 8px;
+  border: 1px solid #dde5f1;
+  border-radius: 11px;
+  background: #fff;
+  color: #32425f;
+  text-align: left;
+}
+.week-admin-cell strong { display: block; color: #15356c; font-size: 14px; }
+.week-admin-cell small { display: block; margin-top: 3px; color: #7a879d; font-size: 10px; }
+.week-admin-cell[data-status="free"] { border-color: #9bdcc1; background: #f0fbf6; }
+.week-admin-cell[data-status="hold"] { border-color: #f0d08a; background: #fff9ea; }
+.week-admin-cell[data-status="busy"] { border-color: #e5b0b0; background: #fff4f4; }
+.week-admin-cell.active { outline: 3px solid rgba(40,110,225,.18); border-color: #5e91e9; }
+
+@media (max-width: 720px) {
+  .weekly-table { min-width: 820px; border-spacing: 6px; }
+  .day-full { display: none; }
+  .day-short { display: inline; }
+  .lesson-number span { min-height: 78px; }
+  .week-cell { min-height: 78px; padding: 9px; }
+  .week-time { font-size: 16px; }
+  .week-status { font-size: 8px; }
+  .week-editor-form { grid-template-columns: 1fr; }
+  .week-editor-form .full { grid-column: auto; }
+}
