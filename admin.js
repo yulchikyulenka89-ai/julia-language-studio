@@ -3,6 +3,14 @@ const REPO_NAME = 'julia-language-studio';
 const BRANCH = 'main';
 const DATA_PATH = 'data/schedule.json';
 
+const DAYS = [
+  ['monday', 'Понедельник', 'Пн'],
+  ['tuesday', 'Вторник', 'Вт'],
+  ['wednesday', 'Среда', 'Ср'],
+  ['thursday', 'Четверг', 'Чт'],
+  ['friday', 'Пятница', 'Пт']
+];
+
 let token = '';
 let fileSha = '';
 let schedule = null;
@@ -45,6 +53,21 @@ function uid(prefix) {
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
 }
 
+function emptyWeekCell() {
+  return { time: '', status: 'empty', title: '', details: '' };
+}
+
+function normalizeWeek() {
+  schedule.week ||= {};
+  DAYS.forEach(([key]) => {
+    const source = Array.isArray(schedule.week[key]) ? schedule.week[key] : [];
+    schedule.week[key] = Array.from({ length: 10 }, (_, index) => ({
+      ...emptyWeekCell(),
+      ...(source[index] || {})
+    }));
+  });
+}
+
 async function api(url, options = {}) {
   const response = await fetch(url, {
     ...options,
@@ -71,10 +94,12 @@ async function loadData() {
   fileSha = body.sha;
   schedule = JSON.parse(decodeBase64Unicode(body.content));
   schedule.meta ||= {};
-  schedule.slots ||= [];
   schedule.groups ||= [];
+  schedule.slots ||= [];
+  normalizeWeek();
   $('noticeInput').value = schedule.meta.notice || '';
   renderAll();
+  selectWeekCell($('weekDay').value, Number($('weekLesson').value));
   $('syncInfo').textContent = schedule.meta.updatedAt
     ? `Последнее сохранение: ${new Date(schedule.meta.updatedAt).toLocaleString('ru-RU')}`
     : 'Изменения ещё не сохранялись из кабинета.';
@@ -100,41 +125,82 @@ async function saveData() {
   showToast('✅ Расписание сохранено и скоро обновится на сайте');
 }
 
-function slotLabel(slot) {
-  const date = slot.date ? new Date(`${slot.date}T12:00:00`).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', weekday: 'short' }) : 'без даты';
-  return `${date} · ${slot.time || '—'}`;
-}
-
 function renderStats() {
-  const free = schedule.slots.filter(s => s.status === 'free').length;
-  const groups = schedule.groups.filter(g => Number(g.seatsFree || 0) > 0).length;
-  const visible = schedule.slots.filter(s => s.visible !== false && s.status !== 'busy').length + schedule.groups.filter(g => g.visible !== false && Number(g.seatsFree || 0) > 0).length;
+  normalizeWeek();
+  const weekCells = DAYS.flatMap(([key]) => schedule.week[key]);
+  const free = weekCells.filter(cell => cell.status === 'free').length;
+  const filled = weekCells.filter(cell => cell.time || cell.title || cell.details || cell.status !== 'empty').length;
+  const groups = schedule.groups.filter(g => Number(g.seatsFree || 0) > 0 && g.visible !== false).length;
   $('statFree').textContent = free;
   $('statGroups').textContent = groups;
-  $('statVisible').textContent = visible;
+  $('statVisible').textContent = filled;
 }
 
-function renderSlots() {
-  const list = $('slotsList');
-  if (!schedule.slots.length) {
-    list.innerHTML = '<div class="empty"><strong>Окон пока нет</strong><span>Добавьте первое свободное время выше.</span></div>';
-    return;
-  }
-  const ordered = [...schedule.slots].sort((a,b) => `${a.date || ''} ${a.time || ''}`.localeCompare(`${b.date || ''} ${b.time || ''}`));
-  list.innerHTML = ordered.map(slot => `
-    <div class="admin-item">
-      <div>
-        <div class="admin-item-title">${esc(slotLabel(slot))}</div>
-        <div class="admin-item-sub">${slot.type === 'group' ? 'Мини‑группа' : 'Индивидуально'} · ${slot.format === 'online' ? 'Онлайн' : 'Очно'} · ${slot.status === 'free' ? 'Свободно' : slot.status === 'hold' ? 'Бронь' : 'Занято'}${slot.audience ? ` · ${esc(slot.audience)}` : ''}${slot.visible === false ? ' · скрыто' : ''}</div>
-      </div>
-      <div class="admin-item-actions">
-        <button class="icon-btn" data-edit-slot="${esc(slot.id)}">✏️</button>
-        <button class="icon-btn danger" data-delete-slot="${esc(slot.id)}">🗑</button>
-      </div>
-    </div>`).join('');
+function statusLabel(status) {
+  return status === 'free' ? 'Свободно' : status === 'hold' ? 'Бронь' : status === 'busy' ? 'Занято' : 'Не задано';
+}
 
-  list.querySelectorAll('[data-edit-slot]').forEach(btn => btn.onclick = () => editSlot(btn.dataset.editSlot));
-  list.querySelectorAll('[data-delete-slot]').forEach(btn => btn.onclick = () => deleteSlot(btn.dataset.deleteSlot));
+function renderWeekAdmin() {
+  normalizeWeek();
+  const selectedDay = $('weekDay').value;
+  const selectedIndex = Number($('weekLesson').value);
+  const headers = DAYS.map(([, full]) => `<th>${full}</th>`).join('');
+  const rows = Array.from({ length: 10 }, (_, rowIndex) => {
+    const cells = DAYS.map(([key]) => {
+      const cell = schedule.week[key][rowIndex] || emptyWeekCell();
+      const active = key === selectedDay && rowIndex === selectedIndex ? ' active' : '';
+      const title = cell.title || statusLabel(cell.status);
+      return `<td><button type="button" class="week-admin-cell${active}" data-day="${key}" data-index="${rowIndex}" data-status="${esc(cell.status || 'empty')}">
+        <strong>${esc(cell.time || '—')}</strong>
+        <small>${esc(title)}</small>
+      </button></td>`;
+    }).join('');
+    return `<tr><th class="admin-row-num">${rowIndex + 1}</th>${cells}</tr>`;
+  }).join('');
+
+  $('weekAdminGrid').innerHTML = `<table class="week-admin-table"><thead><tr><th class="admin-row-num">№</th>${headers}</tr></thead><tbody>${rows}</tbody></table>`;
+  $('weekAdminGrid').querySelectorAll('[data-day]').forEach(button => {
+    button.onclick = () => selectWeekCell(button.dataset.day, Number(button.dataset.index));
+  });
+}
+
+function selectWeekCell(day, index) {
+  if (!schedule) return;
+  normalizeWeek();
+  $('weekDay').value = day;
+  $('weekLesson').value = String(index);
+  const cell = schedule.week[day][index] || emptyWeekCell();
+  $('weekTime').value = cell.time || '';
+  $('weekStatus').value = cell.status || 'empty';
+  $('weekTitle').value = cell.title || '';
+  $('weekDetails').value = cell.details || '';
+  renderWeekAdmin();
+}
+
+function applyWeekCell() {
+  if (!schedule) return;
+  normalizeWeek();
+  const day = $('weekDay').value;
+  const index = Number($('weekLesson').value);
+  schedule.week[day][index] = {
+    time: $('weekTime').value,
+    status: $('weekStatus').value,
+    title: $('weekTitle').value.trim(),
+    details: $('weekDetails').value.trim()
+  };
+  renderAll();
+  selectWeekCell(day, index);
+  showToast('Ячейка изменена локально. Нажмите «Сохранить всё».');
+}
+
+function clearWeekCell() {
+  if (!schedule) return;
+  const day = $('weekDay').value;
+  const index = Number($('weekLesson').value);
+  schedule.week[day][index] = emptyWeekCell();
+  renderAll();
+  selectWeekCell(day, index);
+  showToast('Ячейка очищена локально. Нажмите «Сохранить всё».');
 }
 
 function renderGroups() {
@@ -160,48 +226,8 @@ function renderGroups() {
 
 function renderAll() {
   renderStats();
-  renderSlots();
+  renderWeekAdmin();
   renderGroups();
-}
-
-function resetSlotForm() {
-  $('slotForm').reset();
-  $('slotId').value = '';
-  $('slotDuration').value = 60;
-  $('slotSeatsFree').value = 1;
-  $('slotSeatsTotal').value = 1;
-  $('slotVisible').checked = true;
-  $('slotSubmit').textContent = 'Добавить окно';
-  $('slotCancel').classList.add('hidden');
-}
-
-function editSlot(id) {
-  const s = schedule.slots.find(x => x.id === id);
-  if (!s) return;
-  $('slotId').value = s.id;
-  $('slotDate').value = s.date || '';
-  $('slotTime').value = s.time || '';
-  $('slotDuration').value = s.duration || 60;
-  $('slotType').value = s.type || 'individual';
-  $('slotFormat').value = s.format || 'offline';
-  $('slotStatus').value = s.status || 'free';
-  $('slotAudience').value = s.audience || '';
-  $('slotLevel').value = s.level || '';
-  $('slotSeatsFree').value = s.seatsFree ?? 1;
-  $('slotSeatsTotal').value = s.seatsTotal ?? 1;
-  $('slotNote').value = s.note || '';
-  $('slotVisible').checked = s.visible !== false;
-  $('slotSubmit').textContent = 'Сохранить изменения';
-  $('slotCancel').classList.remove('hidden');
-  $('slotForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-
-function deleteSlot(id) {
-  const slot = schedule.slots.find(x => x.id === id);
-  if (!slot || !confirm(`Удалить окно ${slotLabel(slot)}?`)) return;
-  schedule.slots = schedule.slots.filter(x => x.id !== id);
-  renderAll();
-  showToast('Окно удалено локально. Нажмите «Сохранить всё».');
 }
 
 function resetGroupForm() {
@@ -284,30 +310,10 @@ $('reloadBtn').onclick = async () => {
   }
 };
 
-$('slotForm').onsubmit = event => {
-  event.preventDefault();
-  const id = $('slotId').value || uid('slot');
-  const item = {
-    id,
-    date: $('slotDate').value,
-    time: $('slotTime').value,
-    duration: Number($('slotDuration').value || 60),
-    type: $('slotType').value,
-    format: $('slotFormat').value,
-    status: $('slotStatus').value,
-    audience: $('slotAudience').value.trim(),
-    level: $('slotLevel').value.trim(),
-    seatsFree: Number($('slotSeatsFree').value || 0),
-    seatsTotal: Number($('slotSeatsTotal').value || 1),
-    note: $('slotNote').value.trim(),
-    visible: $('slotVisible').checked
-  };
-  const index = schedule.slots.findIndex(x => x.id === id);
-  if (index >= 0) schedule.slots[index] = item; else schedule.slots.push(item);
-  resetSlotForm();
-  renderAll();
-  showToast('Окно добавлено локально. Теперь нажмите «Сохранить всё».');
-};
+$('weekApplyBtn').onclick = applyWeekCell;
+$('weekClearBtn').onclick = clearWeekCell;
+$('weekDay').onchange = () => selectWeekCell($('weekDay').value, Number($('weekLesson').value));
+$('weekLesson').onchange = () => selectWeekCell($('weekDay').value, Number($('weekLesson').value));
 
 $('groupForm').onsubmit = event => {
   event.preventDefault();
@@ -329,8 +335,7 @@ $('groupForm').onsubmit = event => {
   if (index >= 0) schedule.groups[index] = item; else schedule.groups.push(item);
   resetGroupForm();
   renderAll();
-  showToast('Группа добавлена локально. Теперь нажмите «Сохранить всё».');
+  showToast('Группа изменена локально. Теперь нажмите «Сохранить всё».');
 };
 
-$('slotCancel').onclick = resetSlotForm;
 $('groupCancel').onclick = resetGroupForm;
