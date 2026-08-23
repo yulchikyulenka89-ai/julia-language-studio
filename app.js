@@ -38,11 +38,14 @@ function updatedLabel(value) {
 }
 
 function emptyCell() {
-  return { time: '', status: 'empty', title: '', details: '' };
+  return { status: 'empty', title: '', details: '' };
 }
 
 function normalizeWeek(data) {
   data.week ||= {};
+  data.times = Array.isArray(data.times) ? data.times.slice(0, 10) : [];
+  while (data.times.length < 10) data.times.push('');
+
   DAYS.forEach(([key]) => {
     const source = Array.isArray(data.week[key]) ? data.week[key] : [];
     data.week[key] = Array.from({ length: 10 }, (_, index) => ({
@@ -55,7 +58,7 @@ function normalizeWeek(data) {
 function renderWeekCell(cell) {
   const safe = { ...emptyCell(), ...(cell || {}) };
   const [statusLabel, statusClass] = statusMap[safe.status] || statusMap.empty;
-  const hasContent = safe.time || safe.title || safe.details || safe.status !== 'empty';
+  const hasContent = safe.title || safe.details || safe.status !== 'empty';
 
   if (!hasContent) {
     return `<div class="week-cell week-empty"><span class="week-dash">—</span></div>`;
@@ -68,7 +71,6 @@ function renderWeekCell(cell) {
   return `
     <div class="week-cell ${statusClass}">
       <div class="week-cell-top">
-        <strong class="week-time">${esc(safe.time || '—')}</strong>
         <span class="week-status">${statusLabel}</span>
       </div>
       ${safe.title ? `<div class="week-title">${esc(safe.title)}</div>` : ''}
@@ -86,14 +88,15 @@ function renderWeeklySchedule() {
 
   const rows = Array.from({ length: 10 }, (_, rowIndex) => {
     const cells = DAYS.map(([key]) => `<td>${renderWeekCell(state.data.week[key][rowIndex])}</td>`).join('');
-    return `<tr><th scope="row" class="lesson-number"><span>${rowIndex + 1}</span></th>${cells}</tr>`;
+    const rowTime = state.data.times[rowIndex] || '—';
+    return `<tr><th scope="row" class="lesson-number"><span>${esc(rowTime)}</span></th>${cells}</tr>`;
   }).join('');
 
   weeklySchedule.innerHTML = `
     <table class="weekly-table">
       <thead>
         <tr>
-          <th class="lesson-corner" scope="col">№</th>
+          <th class="lesson-corner" scope="col">Время</th>
           ${header}
         </tr>
       </thead>
