@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#071b45">
   <title>Julia Language Studio — админка расписания</title>
   <link rel="stylesheet" href="styles.css?v=9">
-  <link rel="stylesheet" href="schedule-grid.css?v=3">
+  <link rel="stylesheet" href="schedule-grid.css?v=4">
 </head>
 <body class="admin-body">
   <div class="admin-shell">
@@ -82,16 +82,42 @@
           </div>
           <div class="field full">
             <label for="weekTitle">Подпись</label>
-            <input class="input" id="weekTitle" placeholder="Например: 4 класс · продвинутый / свободно 2 места">
+            <input class="input" id="weekTitle" placeholder="Например: 2 класс">
           </div>
           <div class="field full">
             <label for="weekDetails">Дополнительная информация</label>
-            <input class="input" id="weekDetails" placeholder="Например: мини-группа · 2 места / индивидуально / очно">
+            <input class="input" id="weekDetails" placeholder="Например: 1 место · мини-группа · очно">
           </div>
           <div class="actions full">
             <button class="btn btn-primary" type="button" id="weekApplyBtn">Применить время и ячейку</button>
             <button class="btn btn-danger" type="button" id="weekClearBtn">Очистить ячейку</button>
           </div>
+        </div>
+
+        <div class="admin-copy-box">
+          <div class="admin-copy-head">
+            <div>
+              <strong>⚡ Быстрое копирование</strong>
+              <span>Чтобы не заполнять одинаковые занятия вручную.</span>
+            </div>
+          </div>
+          <div class="admin-copy-grid">
+            <div class="field">
+              <label for="copyTargetDay">Куда скопировать выбранный день</label>
+              <select class="select" id="copyTargetDay">
+                <option value="monday">Понедельник</option>
+                <option value="tuesday">Вторник</option>
+                <option value="wednesday">Среда</option>
+                <option value="thursday">Четверг</option>
+                <option value="friday">Пятница</option>
+              </select>
+            </div>
+            <div class="admin-copy-actions">
+              <button class="btn btn-secondary" type="button" id="copyDayBtn">📋 Скопировать день</button>
+              <button class="btn btn-primary" type="button" id="copyWeekBtn">🗓 Скопировать день на всю неделю</button>
+            </div>
+          </div>
+          <p class="admin-item-sub">Копируется весь выбранный день: все 10 ячеек. Время строк остаётся общим для всей недели.</p>
         </div>
 
         <div class="week-admin-scroll">
@@ -101,6 +127,6 @@
     </section>
   </div>
   <div class="toast" id="toast"></div>
-  <script src="admin.js?v=9"></script>
+  <script src="admin.js?v=10"></script>
 </body>
 </html>
