@@ -3,7 +3,7 @@
     "studio": "Julia Language Studio",
     "subtitle": "Курсы иностранных языков с Юленькой Фаттаховой",
     "timezone": "Europe/Moscow",
-    "updatedAt": "2026-08-23T20:10:47.408Z",
+    "updatedAt": "2026-08-23T20:39:46.924Z",
     "notice": "Недельное расписание: понедельник–пятница, по 10 занятий в день."
   },
   "times": [
@@ -187,7 +187,7 @@
         "details": ""
       },
       {
-        "status": "empty",
+        "status": "free",
         "title": "2  класс",
         "details": "Свободно 1 место"
       },
