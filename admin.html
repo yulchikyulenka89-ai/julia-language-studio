@@ -5,14 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#071b45">
   <title>Julia Language Studio — админка</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=7">
+  <link rel="stylesheet" href="schedule-grid.css?v=1">
 </head>
 <body class="admin-body">
   <div class="admin-shell">
     <div class="admin-head">
       <div class="admin-title">
         <h1>Julia Language Studio</h1>
-        <p>Управление свободными окнами и местами в группах</p>
+        <p>Управление недельным расписанием и местами в группах</p>
       </div>
       <a class="btn btn-secondary" href="index.html" target="_blank">👁 Открыть сайт</a>
     </div>
@@ -31,9 +32,9 @@
 
     <section id="appView" class="hidden">
       <div class="stat-row">
-        <div class="stat"><b id="statFree">0</b><span>свободных окон</span></div>
+        <div class="stat"><b id="statFree">0</b><span>свободных занятий</span></div>
         <div class="stat"><b id="statGroups">0</b><span>групп с местами</span></div>
-        <div class="stat"><b id="statVisible">0</b><span>видно на сайте</span></div>
+        <div class="stat"><b id="statVisible">0</b><span>заполнено ячеек</span></div>
       </div>
 
       <div class="admin-grid">
@@ -52,31 +53,57 @@
 
         <div>
           <section class="panel" style="margin-bottom:18px">
-            <h2>➕ Добавить свободное окно</h2>
-            <form id="slotForm" class="form-grid">
-              <input type="hidden" id="slotId">
-              <div class="field"><label>Дата</label><input class="input" id="slotDate" type="date" required></div>
-              <div class="field"><label>Время</label><input class="input" id="slotTime" type="time" required></div>
-              <div class="field"><label>Продолжительность</label><input class="input" id="slotDuration" type="number" min="20" step="5" value="60"></div>
-              <div class="field"><label>Тип</label><select class="select" id="slotType"><option value="individual">Индивидуально</option><option value="group">Мини‑группа</option></select></div>
-              <div class="field"><label>Формат</label><select class="select" id="slotFormat"><option value="offline">Очно</option><option value="online">Онлайн</option></select></div>
-              <div class="field"><label>Статус</label><select class="select" id="slotStatus"><option value="free">Свободно</option><option value="hold">Бронь</option><option value="busy">Занято</option></select></div>
-              <div class="field"><label>Для кого</label><input class="input" id="slotAudience" placeholder="4 класс / взрослый / подросток"></div>
-              <div class="field"><label>Уровень</label><input class="input" id="slotLevel" placeholder="С нуля / A2 / B1"></div>
-              <div class="field"><label>Свободных мест</label><input class="input" id="slotSeatsFree" type="number" min="0" value="1"></div>
-              <div class="field"><label>Всего мест</label><input class="input" id="slotSeatsTotal" type="number" min="1" value="1"></div>
-              <div class="field full"><label>Публичная заметка</label><textarea class="textarea" id="slotNote" placeholder="Например: подходит учащимся второй смены"></textarea></div>
-              <div class="field full"><label class="check"><input type="checkbox" id="slotVisible" checked> Показывать на сайте</label></div>
-              <div class="actions full">
-                <button class="btn btn-primary" type="submit" id="slotSubmit">Добавить окно</button>
-                <button class="btn btn-secondary hidden" type="button" id="slotCancel">Отменить редактирование</button>
-              </div>
-            </form>
-          </section>
+            <h2>🗓 Недельное расписание · Пн–Пт</h2>
+            <p class="admin-item-sub" style="margin-bottom:14px">10 занятий в день. Нажмите любую ячейку в таблице ниже или выберите день и номер занятия вручную.</p>
 
-          <section class="panel" style="margin-bottom:18px">
-            <h2>🗓 Все окна</h2>
-            <div class="admin-list" id="slotsList"></div>
+            <div class="week-editor-form">
+              <div class="field">
+                <label for="weekDay">День</label>
+                <select class="select" id="weekDay">
+                  <option value="monday">Понедельник</option>
+                  <option value="tuesday">Вторник</option>
+                  <option value="wednesday">Среда</option>
+                  <option value="thursday">Четверг</option>
+                  <option value="friday">Пятница</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="weekLesson">№ занятия</label>
+                <select class="select" id="weekLesson">
+                  <option value="0">1</option><option value="1">2</option><option value="2">3</option><option value="3">4</option><option value="4">5</option>
+                  <option value="5">6</option><option value="6">7</option><option value="7">8</option><option value="8">9</option><option value="9">10</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="weekTime">Время</label>
+                <input class="input" id="weekTime" type="time">
+              </div>
+              <div class="field">
+                <label for="weekStatus">Статус</label>
+                <select class="select" id="weekStatus">
+                  <option value="empty">Не задано</option>
+                  <option value="free">Свободно</option>
+                  <option value="hold">Бронь</option>
+                  <option value="busy">Занято</option>
+                </select>
+              </div>
+              <div class="field full">
+                <label for="weekTitle">Подпись</label>
+                <input class="input" id="weekTitle" placeholder="Например: 4 класс · продвинутый">
+              </div>
+              <div class="field full">
+                <label for="weekDetails">Дополнительная информация</label>
+                <input class="input" id="weekDetails" placeholder="Например: мини-группа · 2 места / индивидуально">
+              </div>
+              <div class="actions full">
+                <button class="btn btn-primary" type="button" id="weekApplyBtn">Применить к ячейке</button>
+                <button class="btn btn-danger" type="button" id="weekClearBtn">Очистить ячейку</button>
+              </div>
+            </div>
+
+            <div class="week-admin-scroll">
+              <div id="weekAdminGrid"></div>
+            </div>
           </section>
 
           <section class="panel" style="margin-bottom:18px">
@@ -109,6 +136,6 @@
     </section>
   </div>
   <div class="toast" id="toast"></div>
-  <script src="admin.js"></script>
+  <script src="admin.js?v=7"></script>
 </body>
 </html>
