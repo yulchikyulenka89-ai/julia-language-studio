@@ -3,16 +3,282 @@
     "studio": "Julia Language Studio",
     "subtitle": "Курсы иностранных языков с Юленькой Фаттаховой",
     "timezone": "Europe/Moscow",
-    "updatedAt": "",
+    "updatedAt": "2026-08-23T20:07:32.718Z",
     "notice": "Недельное расписание: понедельник–пятница, по 10 занятий в день."
   },
-  "times": ["", "", "", "", "", "", "", "", "", ""],
+  "times": [
+    "08:10",
+    "09:05",
+    "10:00",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+  ],
   "week": {
-    "monday": [],
-    "tuesday": [],
-    "wednesday": [],
-    "thursday": [],
-    "friday": []
+    "monday": [
+      {
+        "status": "busy",
+        "title": "Онлайн",
+        "details": ""
+      },
+      {
+        "status": "busy",
+        "title": "Онлайн",
+        "details": ""
+      },
+      {
+        "status": "free",
+        "title": "2 класс",
+        "details": "Свободно 1 место"
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      }
+    ],
+    "tuesday": [
+      {
+        "status": "busy",
+        "title": "Онлайн",
+        "details": ""
+      },
+      {
+        "status": "busy",
+        "title": "Онлайн",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      }
+    ],
+    "wednesday": [
+      {
+        "status": "busy",
+        "title": "Онлайн",
+        "details": ""
+      },
+      {
+        "status": "busy",
+        "title": "Онлайн",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      }
+    ],
+    "thursday": [
+      {
+        "status": "busy",
+        "title": "Онлайн",
+        "details": ""
+      },
+      {
+        "status": "busy",
+        "title": "Онлайн",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "2  класс",
+        "details": "Свободно 1 место"
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      }
+    ],
+    "friday": [
+      {
+        "status": "busy",
+        "title": "Онлайн",
+        "details": ""
+      },
+      {
+        "status": "busy",
+        "title": "Онлайн",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      },
+      {
+        "status": "empty",
+        "title": "",
+        "details": ""
+      }
+    ]
   },
   "slots": [],
   "groups": []
