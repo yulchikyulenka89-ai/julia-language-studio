@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#071b45">
+  <title>Julia Language Studio — админка</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="admin-body">
+  <div class="admin-shell">
+    <div class="admin-head">
+      <div class="admin-title">
+        <h1>Julia Language Studio</h1>
+        <p>Управление свободными окнами и местами в группах</p>
+      </div>
+      <a class="btn btn-secondary" href="index.html" target="_blank">👁 Открыть сайт</a>
+    </div>
+
+    <section id="loginView" class="panel login-box">
+      <h2>🔐 Вход в кабинет</h2>
+      <p class="security-note">Нужен fine-grained GitHub token с доступом только к репозиторию <b>julia-language-studio</b> и правом <b>Contents: Read and write</b>. Токен не сохраняется в файлах сайта и живёт только в памяти текущей вкладки.</p>
+      <div class="field" style="margin-top:14px">
+        <label for="tokenInput">GitHub token</label>
+        <input class="input" id="tokenInput" type="password" autocomplete="off" placeholder="github_pat_…">
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary" id="loginBtn">Войти и загрузить расписание</button>
+      </div>
+    </section>
+
+    <section id="appView" class="hidden">
+      <div class="stat-row">
+        <div class="stat"><b id="statFree">0</b><span>свободных окон</span></div>
+        <div class="stat"><b id="statGroups">0</b><span>групп с местами</span></div>
+        <div class="stat"><b id="statVisible">0</b><span>видно на сайте</span></div>
+      </div>
+
+      <div class="admin-grid">
+        <aside class="panel">
+          <h2>⚙️ Настройки страницы</h2>
+          <div class="field">
+            <label for="noticeInput">Сообщение над расписанием</label>
+            <textarea class="textarea" id="noticeInput" placeholder="Например: Набор на сентябрь открыт"></textarea>
+          </div>
+          <div class="actions">
+            <button class="btn btn-primary" id="saveAllBtn">💾 Сохранить всё</button>
+            <button class="btn btn-secondary" id="reloadBtn">↻ Обновить данные</button>
+          </div>
+          <p class="admin-item-sub" id="syncInfo" style="margin-top:12px"></p>
+        </aside>
+
+        <div>
+          <section class="panel" style="margin-bottom:18px">
+            <h2>➕ Добавить свободное окно</h2>
+            <form id="slotForm" class="form-grid">
+              <input type="hidden" id="slotId">
+              <div class="field"><label>Дата</label><input class="input" id="slotDate" type="date" required></div>
+              <div class="field"><label>Время</label><input class="input" id="slotTime" type="time" required></div>
+              <div class="field"><label>Продолжительность</label><input class="input" id="slotDuration" type="number" min="20" step="5" value="60"></div>
+              <div class="field"><label>Тип</label><select class="select" id="slotType"><option value="individual">Индивидуально</option><option value="group">Мини‑группа</option></select></div>
+              <div class="field"><label>Формат</label><select class="select" id="slotFormat"><option value="offline">Очно</option><option value="online">Онлайн</option></select></div>
+              <div class="field"><label>Статус</label><select class="select" id="slotStatus"><option value="free">Свободно</option><option value="hold">Бронь</option><option value="busy">Занято</option></select></div>
+              <div class="field"><label>Для кого</label><input class="input" id="slotAudience" placeholder="4 класс / взрослый / подросток"></div>
+              <div class="field"><label>Уровень</label><input class="input" id="slotLevel" placeholder="С нуля / A2 / B1"></div>
+              <div class="field"><label>Свободных мест</label><input class="input" id="slotSeatsFree" type="number" min="0" value="1"></div>
+              <div class="field"><label>Всего мест</label><input class="input" id="slotSeatsTotal" type="number" min="1" value="1"></div>
+              <div class="field full"><label>Публичная заметка</label><textarea class="textarea" id="slotNote" placeholder="Например: подходит учащимся второй смены"></textarea></div>
+              <div class="field full"><label class="check"><input type="checkbox" id="slotVisible" checked> Показывать на сайте</label></div>
+              <div class="actions full">
+                <button class="btn btn-primary" type="submit" id="slotSubmit">Добавить окно</button>
+                <button class="btn btn-secondary hidden" type="button" id="slotCancel">Отменить редактирование</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="panel" style="margin-bottom:18px">
+            <h2>🗓 Все окна</h2>
+            <div class="admin-list" id="slotsList"></div>
+          </section>
+
+          <section class="panel" style="margin-bottom:18px">
+            <h2>👥 Добавить или изменить группу</h2>
+            <form id="groupForm" class="form-grid">
+              <input type="hidden" id="groupId">
+              <div class="field full"><label>Название группы</label><input class="input" id="groupTitle" placeholder="4 класс · продвинутый" required></div>
+              <div class="field"><label>Дни</label><input class="input" id="groupDays" placeholder="Пн / Ср"></div>
+              <div class="field"><label>Время</label><input class="input" id="groupTime" placeholder="10:00"></div>
+              <div class="field"><label>Для кого</label><input class="input" id="groupAudience" placeholder="4 класс"></div>
+              <div class="field"><label>Уровень</label><input class="input" id="groupLevel" placeholder="Продвинутый"></div>
+              <div class="field"><label>Формат</label><select class="select" id="groupFormat"><option value="offline">Очно</option><option value="online">Онлайн</option></select></div>
+              <div class="field"><label>Свободных мест</label><input class="input" id="groupSeatsFree" type="number" min="0" value="1"></div>
+              <div class="field"><label>Всего мест</label><input class="input" id="groupSeatsTotal" type="number" min="1" value="4"></div>
+              <div class="field full"><label>Публичная заметка</label><textarea class="textarea" id="groupNote"></textarea></div>
+              <div class="field full"><label class="check"><input type="checkbox" id="groupVisible" checked> Показывать на сайте</label></div>
+              <div class="actions full">
+                <button class="btn btn-primary" type="submit" id="groupSubmit">Добавить группу</button>
+                <button class="btn btn-secondary hidden" type="button" id="groupCancel">Отменить редактирование</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="panel">
+            <h2>🎓 Группы</h2>
+            <div class="admin-list" id="groupsList"></div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script src="admin.js"></script>
+</body>
+</html>
