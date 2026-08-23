@@ -4,11 +4,11 @@ const BRANCH = 'main';
 const DATA_PATH = 'data/schedule.json';
 
 const DAYS = [
-  ['monday', 'Понедельник', 'Пн'],
-  ['tuesday', 'Вторник', 'Вт'],
-  ['wednesday', 'Среда', 'Ср'],
-  ['thursday', 'Четверг', 'Чт'],
-  ['friday', 'Пятница', 'Пт']
+  ['monday', 'Понедельник'],
+  ['tuesday', 'Вторник'],
+  ['wednesday', 'Среда'],
+  ['thursday', 'Четверг'],
+  ['friday', 'Пятница']
 ];
 
 let token = '';
@@ -49,10 +49,6 @@ function decodeBase64Unicode(base64) {
   return new TextDecoder().decode(bytes);
 }
 
-function uid(prefix) {
-  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
-}
-
 function emptyWeekCell() {
   return { status: 'empty', title: '', details: '' };
 }
@@ -83,10 +79,7 @@ async function api(url, options = {}) {
   });
   let body = null;
   try { body = await response.json(); } catch { body = {}; }
-  if (!response.ok) {
-    const message = body?.message || `HTTP ${response.status}`;
-    throw new Error(message);
-  }
+  if (!response.ok) throw new Error(body?.message || `HTTP ${response.status}`);
   return body;
 }
 
@@ -97,10 +90,7 @@ async function loadData() {
   fileSha = body.sha;
   schedule = JSON.parse(decodeBase64Unicode(body.content));
   schedule.meta ||= {};
-  schedule.groups ||= [];
-  schedule.slots ||= [];
   normalizeWeek();
-  $('noticeInput').value = schedule.meta.notice || '';
   renderAll();
   selectWeekCell($('weekDay').value, Number($('weekLesson').value));
   $('syncInfo').textContent = schedule.meta.updatedAt
@@ -110,7 +100,6 @@ async function loadData() {
 
 async function saveData() {
   if (!schedule || !fileSha) throw new Error('Данные ещё не загружены');
-  schedule.meta.notice = $('noticeInput').value.trim();
   schedule.meta.updatedAt = new Date().toISOString();
   const payload = {
     message: `Update studio schedule ${new Date().toLocaleString('ru-RU')}`,
@@ -130,13 +119,10 @@ async function saveData() {
 
 function renderStats() {
   normalizeWeek();
-  const weekCells = DAYS.flatMap(([key]) => schedule.week[key]);
-  const free = weekCells.filter(cell => cell.status === 'free').length;
-  const filled = weekCells.filter(cell => cell.title || cell.details || cell.status !== 'empty').length;
-  const groups = schedule.groups.filter(g => Number(g.seatsFree || 0) > 0 && g.visible !== false).length;
-  $('statFree').textContent = free;
-  $('statGroups').textContent = groups;
-  $('statVisible').textContent = filled;
+  const cells = DAYS.flatMap(([key]) => schedule.week[key]);
+  $('statFree').textContent = cells.filter(cell => cell.status === 'free').length;
+  $('statBusy').textContent = cells.filter(cell => cell.status === 'busy').length;
+  $('statFilled').textContent = cells.filter(cell => cell.title || cell.details || cell.status !== 'empty').length;
 }
 
 function statusLabel(status) {
@@ -193,7 +179,7 @@ function applyWeekCell() {
   };
   renderAll();
   selectWeekCell(day, index);
-  showToast('Время строки и ячейка изменены локально. Нажмите «Сохранить всё».');
+  showToast('Время строки и ячейка изменены. Нажмите «Сохранить всё».');
 }
 
 function clearWeekCell() {
@@ -203,71 +189,12 @@ function clearWeekCell() {
   schedule.week[day][index] = emptyWeekCell();
   renderAll();
   selectWeekCell(day, index);
-  showToast('Ячейка очищена. Время строки сохранено. Нажмите «Сохранить всё».');
-}
-
-function renderGroups() {
-  const list = $('groupsList');
-  if (!schedule.groups.length) {
-    list.innerHTML = '<div class="empty"><strong>Групп пока нет</strong><span>Добавьте группу выше, когда откроется набор.</span></div>';
-    return;
-  }
-  list.innerHTML = schedule.groups.map(group => `
-    <div class="admin-item">
-      <div>
-        <div class="admin-item-title">${esc(group.title || 'Группа')}</div>
-        <div class="admin-item-sub">${esc(group.days || 'дни не указаны')} · ${esc(group.time || 'время не указано')} · мест ${esc(group.seatsFree || 0)}/${esc(group.seatsTotal || 0)}${group.visible === false ? ' · скрыто' : ''}</div>
-      </div>
-      <div class="admin-item-actions">
-        <button class="icon-btn" data-edit-group="${esc(group.id)}">✏️</button>
-        <button class="icon-btn danger" data-delete-group="${esc(group.id)}">🗑</button>
-      </div>
-    </div>`).join('');
-  list.querySelectorAll('[data-edit-group]').forEach(btn => btn.onclick = () => editGroup(btn.dataset.editGroup));
-  list.querySelectorAll('[data-delete-group]').forEach(btn => btn.onclick = () => deleteGroup(btn.dataset.deleteGroup));
+  showToast('Ячейка очищена. Время строки сохранено.');
 }
 
 function renderAll() {
   renderStats();
   renderWeekAdmin();
-  renderGroups();
-}
-
-function resetGroupForm() {
-  $('groupForm').reset();
-  $('groupId').value = '';
-  $('groupSeatsFree').value = 1;
-  $('groupSeatsTotal').value = 4;
-  $('groupVisible').checked = true;
-  $('groupSubmit').textContent = 'Добавить группу';
-  $('groupCancel').classList.add('hidden');
-}
-
-function editGroup(id) {
-  const g = schedule.groups.find(x => x.id === id);
-  if (!g) return;
-  $('groupId').value = g.id;
-  $('groupTitle').value = g.title || '';
-  $('groupDays').value = g.days || '';
-  $('groupTime').value = g.time || '';
-  $('groupAudience').value = g.audience || '';
-  $('groupLevel').value = g.level || '';
-  $('groupFormat').value = g.format || 'offline';
-  $('groupSeatsFree').value = g.seatsFree ?? 1;
-  $('groupSeatsTotal').value = g.seatsTotal ?? 4;
-  $('groupNote').value = g.note || '';
-  $('groupVisible').checked = g.visible !== false;
-  $('groupSubmit').textContent = 'Сохранить изменения';
-  $('groupCancel').classList.remove('hidden');
-  $('groupForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-
-function deleteGroup(id) {
-  const group = schedule.groups.find(x => x.id === id);
-  if (!group || !confirm(`Удалить группу «${group.title || 'Без названия'}»?`)) return;
-  schedule.groups = schedule.groups.filter(x => x.id !== id);
-  renderAll();
-  showToast('Группа удалена локально. Нажмите «Сохранить всё».');
 }
 
 $('loginBtn').onclick = async () => {
@@ -317,28 +244,3 @@ $('weekApplyBtn').onclick = applyWeekCell;
 $('weekClearBtn').onclick = clearWeekCell;
 $('weekDay').onchange = () => selectWeekCell($('weekDay').value, Number($('weekLesson').value));
 $('weekLesson').onchange = () => selectWeekCell($('weekDay').value, Number($('weekLesson').value));
-
-$('groupForm').onsubmit = event => {
-  event.preventDefault();
-  const id = $('groupId').value || uid('group');
-  const item = {
-    id,
-    title: $('groupTitle').value.trim(),
-    days: $('groupDays').value.trim(),
-    time: $('groupTime').value.trim(),
-    audience: $('groupAudience').value.trim(),
-    level: $('groupLevel').value.trim(),
-    format: $('groupFormat').value,
-    seatsFree: Number($('groupSeatsFree').value || 0),
-    seatsTotal: Number($('groupSeatsTotal').value || 1),
-    note: $('groupNote').value.trim(),
-    visible: $('groupVisible').checked
-  };
-  const index = schedule.groups.findIndex(x => x.id === id);
-  if (index >= 0) schedule.groups[index] = item; else schedule.groups.push(item);
-  resetGroupForm();
-  renderAll();
-  showToast('Группа изменена локально. Теперь нажмите «Сохранить всё».');
-};
-
-$('groupCancel').onclick = resetGroupForm;
