@@ -54,11 +54,14 @@ function uid(prefix) {
 }
 
 function emptyWeekCell() {
-  return { time: '', status: 'empty', title: '', details: '' };
+  return { status: 'empty', title: '', details: '' };
 }
 
 function normalizeWeek() {
   schedule.week ||= {};
+  schedule.times = Array.isArray(schedule.times) ? schedule.times.slice(0, 10) : [];
+  while (schedule.times.length < 10) schedule.times.push('');
+
   DAYS.forEach(([key]) => {
     const source = Array.isArray(schedule.week[key]) ? schedule.week[key] : [];
     schedule.week[key] = Array.from({ length: 10 }, (_, index) => ({
@@ -129,7 +132,7 @@ function renderStats() {
   normalizeWeek();
   const weekCells = DAYS.flatMap(([key]) => schedule.week[key]);
   const free = weekCells.filter(cell => cell.status === 'free').length;
-  const filled = weekCells.filter(cell => cell.time || cell.title || cell.details || cell.status !== 'empty').length;
+  const filled = weekCells.filter(cell => cell.title || cell.details || cell.status !== 'empty').length;
   const groups = schedule.groups.filter(g => Number(g.seatsFree || 0) > 0 && g.visible !== false).length;
   $('statFree').textContent = free;
   $('statGroups').textContent = groups;
@@ -151,14 +154,14 @@ function renderWeekAdmin() {
       const active = key === selectedDay && rowIndex === selectedIndex ? ' active' : '';
       const title = cell.title || statusLabel(cell.status);
       return `<td><button type="button" class="week-admin-cell${active}" data-day="${key}" data-index="${rowIndex}" data-status="${esc(cell.status || 'empty')}">
-        <strong>${esc(cell.time || '—')}</strong>
-        <small>${esc(title)}</small>
+        <strong>${esc(title)}</strong>
+        <small>${esc(cell.details || statusLabel(cell.status))}</small>
       </button></td>`;
     }).join('');
-    return `<tr><th class="admin-row-num">${rowIndex + 1}</th>${cells}</tr>`;
+    return `<tr><th class="admin-row-num">${esc(schedule.times[rowIndex] || '—')}</th>${cells}</tr>`;
   }).join('');
 
-  $('weekAdminGrid').innerHTML = `<table class="week-admin-table"><thead><tr><th class="admin-row-num">№</th>${headers}</tr></thead><tbody>${rows}</tbody></table>`;
+  $('weekAdminGrid').innerHTML = `<table class="week-admin-table"><thead><tr><th class="admin-row-num">Время</th>${headers}</tr></thead><tbody>${rows}</tbody></table>`;
   $('weekAdminGrid').querySelectorAll('[data-day]').forEach(button => {
     button.onclick = () => selectWeekCell(button.dataset.day, Number(button.dataset.index));
   });
@@ -170,7 +173,7 @@ function selectWeekCell(day, index) {
   $('weekDay').value = day;
   $('weekLesson').value = String(index);
   const cell = schedule.week[day][index] || emptyWeekCell();
-  $('weekTime').value = cell.time || '';
+  $('weekTime').value = schedule.times[index] || '';
   $('weekStatus').value = cell.status || 'empty';
   $('weekTitle').value = cell.title || '';
   $('weekDetails').value = cell.details || '';
@@ -182,15 +185,15 @@ function applyWeekCell() {
   normalizeWeek();
   const day = $('weekDay').value;
   const index = Number($('weekLesson').value);
+  schedule.times[index] = $('weekTime').value;
   schedule.week[day][index] = {
-    time: $('weekTime').value,
     status: $('weekStatus').value,
     title: $('weekTitle').value.trim(),
     details: $('weekDetails').value.trim()
   };
   renderAll();
   selectWeekCell(day, index);
-  showToast('Ячейка изменена локально. Нажмите «Сохранить всё».');
+  showToast('Время строки и ячейка изменены локально. Нажмите «Сохранить всё».');
 }
 
 function clearWeekCell() {
@@ -200,7 +203,7 @@ function clearWeekCell() {
   schedule.week[day][index] = emptyWeekCell();
   renderAll();
   selectWeekCell(day, index);
-  showToast('Ячейка очищена локально. Нажмите «Сохранить всё».');
+  showToast('Ячейка очищена. Время строки сохранено. Нажмите «Сохранить всё».');
 }
 
 function renderGroups() {
